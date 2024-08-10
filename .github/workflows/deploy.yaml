@@ -1,14 +1,13 @@
-name: Build,Analyze,scan
+name: Build, Analyze, Scan, and Deploy
 
 on:
   push:
     branches:
       - main
 
-
 jobs:
   build-analyze-scan:
-    name: Build
+    name: Build, Analyze, and Scan
     runs-on: [self-hosted]
     steps:
       - name: Checkout code
@@ -40,12 +39,18 @@ jobs:
       - name: Image scan
         run: trivy image ganeshsnp987/tic-tac-toe:latest > trivyimage.txt
 
-        
   deploy:
-   needs: build-analyze-scan   
-   runs-on: [self-hosted]
-   steps:
-      - name: docker pull image
+    needs: build-analyze-scan   
+    runs-on: [self-hosted]
+    steps:
+      - name: Delete existing Docker container if it exists
+        run: |
+          if [ "$(docker ps -q -f name=game)" ]; then
+            docker stop game
+            docker rm game
+          fi
+
+      - name: Docker pull image
         run: docker pull ganeshsnp987/tic-tac-toe:latest
 
       - name: Image scan
